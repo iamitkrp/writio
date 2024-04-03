@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Translator</title>
+    <link rel="stylesheet" href="translator.css">
+</head>
+<body>
+    <h1>Writio Code Translator</h1>
+    <h3>Made by Amit</h3>
+
+    <div class="links-container">
+        <a href="../index.html" class="link" id="homepage-link" target="_blank">Homepage</a>
+        <a href="../generator/generator.html" class="link" id="translator-link" target="_blank">Code Generator</a>
+    </div>
+
+    <div class="container">
+        <div class="left-section">
+            <div class="form-group">    
+                <h2>Enter Code:</h2>
+                <textarea id="inputcode" name="inputcode" rows="8" cols="50" style="height: 250px;" required></textarea>
+                <div class="button-group">
+                    <button id="clear_input_btn" class="button-49" role="button">Clear</button>
+                    <button id="copy_input_btn" class="button-49" role="button">Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="middle-section">
+            <div class="form-group">
+                <button id="translate_btn" class="translate-button" role="button">Translate</button>
+            </div>
+            <div class="form-group">
+                <label for="target_lang">Select Target Language:</label>
+                <select id="target_lang" name="target_lang">
+                    <option value="Python">Python</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="Java">Java</option>
+                    <option value="C">C</option>
+                    <option value="C#">C#</option>
+                    <option value="C++">C++</option>
+                    <option value="Dart">Dart</option>
+                    <option value="Erlang">Erlang</option>
+                    <option value="Go">Go</option>
+                    <option value="Kotlin">Kotlin</option>
+                    <option value="PHP">PHP</option>
+                    <option value="Ruby">Ruby</option>
+                    <option value="Rust">Rust</option>
+                    <option value="Swift">Swift</option>
+                    <option value="TypeScript">TypeScript</option>
+                    <option value="HTML">HTML</option>
+                    <option value="CSS">CSS</option>
+                    <option value="SQL">SQL</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <div class="form-group">
+                <h2>Translated Code:</h2>
+                <textarea id="output" name="output" rows="8" cols="50" style="height: 250px;" readonly></textarea>
+
+                <div class="button-group">
+                    <button id="clear_output_btn" class="button-49" role="button">Clear</button>
+                    <button id="copy_output_btn" class="button-49" role="button">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        const apiKey = "AIzaSyC3t1Y2VLphaTVviDM82iEe5pMLzap8_xc";
+        const genAI = new GoogleGenerativeAI(apiKey);
+
+        document.getElementById('clear_input_btn').addEventListener('click', function() {
+            document.getElementById('inputcode').value = '';
+        });
+
+        document.getElementById('copy_input_btn').addEventListener('click', function() {
+            const inputTextarea = document.getElementById('inputcode');
+            inputTextarea.select();
+            document.execCommand('copy');
+            inputTextarea.setSelectionRange(0, 0);
+        });
+
+        document.getElementById('translate_btn').addEventListener('click', async function() {
+            const inputCode = document.getElementById('inputcode').value.trim();
+            const targetLang = document.getElementById('target_lang').value;
+
+            if (!inputCode) {
+                alert('Please fill in the Code field.');
+                return;
+            }
+
+            try {
+                const modifiedPrompt = "convert the code " + inputCode + " from any to " + targetLang;
+                const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+                const result = await model.generateContent(modifiedPrompt);
+                const response = await result.response;
+                const text = await response.text();
+
+                const outputIndex = text.indexOf('Output:');
+                const codeContent = outputIndex !== -1 ? text.substring(0, outputIndex).trim() : text.trim();
+                const codeLines = codeContent.split('\n');
+                const filteredCodeLines = codeLines.filter(line => !line.includes('```'));
+                const translatedCode = filteredCodeLines.join('\n').trim();
+
+                document.getElementById('output').value = translatedCode;
+            } catch (error) {
+                console.error('Error:', error.message);
+                alert('An error occurred. Please try again.');
+            }
+        });
+
+        document.getElementById('clear_output_btn').addEventListener('click', function() {
+            document.getElementById('output').value = '';
+        });
+
+        document.getElementById('copy_output_btn').addEventListener('click', function() {
+            const outputTextarea = document.getElementById('output');
+            outputTextarea.select();
+            document.execCommand('copy');
+            outputTextarea.setSelectionRange(0, 0);
+        });
+    </script>
+</body>
+</html>
